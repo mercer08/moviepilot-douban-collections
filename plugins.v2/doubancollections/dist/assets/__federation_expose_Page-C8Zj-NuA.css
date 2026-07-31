@@ -1,0 +1,7 @@
+
+.dc-toolbar[data-v-b4ab45b4] {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
+}

@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "DoubanCollections_v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+          run_install: false
+
+      - name: Build Vue federation bundle
+        working-directory: plugins.v2/doubancollections
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      - name: Package plugin
+        run: |
+          release_version="${GITHUB_REF_NAME#DoubanCollections_}"
+          cd plugins.v2/doubancollections
+          zip -r "${GITHUB_WORKSPACE}/doubancollections_${release_version}.zip" . -x "node_modules/*"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release_version="${GITHUB_REF_NAME#DoubanCollections_}"
+          gh release create "$GITHUB_REF_NAME" \
+            "doubancollections_${release_version}.zip" \
+            --title "豆瓣合集榜单 ${release_version}" \
+            --generate-notes

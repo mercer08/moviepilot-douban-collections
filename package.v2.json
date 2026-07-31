@@ -1,0 +1,16 @@
+{
+  "DoubanCollections": {
+    "name": "豆瓣合集榜单",
+    "description": "在 MoviePilot 中浏览豆瓣 subject_collection 榜单，保留地区与类型筛选，并支持原生订阅。",
+    "labels": "豆瓣,榜单,发现",
+    "version": "1.0.0",
+    "icon": "https://raw.githubusercontent.com/mercer08/moviepilot-douban-collections/main/icons/douban.png",
+    "author": "mercer08",
+    "level": 1,
+    "system_version": ">=2.15.1",
+    "release": true,
+    "history": {
+      "v1.0.0": "首个版本：动态读取豆瓣榜单筛选、海报、评分和条目，并接入 MoviePilot 原生订阅"
+    }
+  }
+}
