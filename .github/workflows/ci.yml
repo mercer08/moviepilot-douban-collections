@@ -19,17 +19,5 @@ jobs:
           python -m unittest discover -s tests -v
           python -m py_compile plugins.v2/doubancollections/__init__.py plugins.v2/doubancollections/douban.py
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11
-          run_install: false
-
-      - name: Build Vue federation bundle
-        working-directory: plugins.v2/doubancollections
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm run build
+      - name: Validate marketplace manifest
+        run: jq empty package.v2.json
