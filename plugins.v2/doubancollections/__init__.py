@@ -6,6 +6,8 @@ import threading
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
+from fastapi import HTTPException
+
 from app import schemas
 from app.core.config import settings
 from app.core.event import Event, eventmanager
@@ -32,7 +34,7 @@ class DoubanCollections(_PluginBase):
     plugin_name = "豆瓣分类榜单"
     plugin_desc = "在探索页新增豆瓣分类榜单标签，保留地区和分类筛选，并使用原生媒体卡片。"
     plugin_icon = "https://raw.githubusercontent.com/mercer08/moviepilot-douban-collections/main/icons/douban.png"
-    plugin_version = "1.1.0"
+    plugin_version = "1.2.0"
     plugin_author = "mercer08"
     author_url = "https://github.com/mercer08"
     plugin_config_prefix = "doubancollections_"
@@ -168,6 +170,7 @@ class DoubanCollections(_PluginBase):
         collection_id: str = "",
         page: int = 1,
         count: int = 20,
+        year: str = "all",
     ) -> List[schemas.MediaInfo]:
         """返回 MoviePilot 原生 MediaInfo 列表，供探索页无限滚动。"""
         if not self.get_state():
@@ -183,12 +186,20 @@ class DoubanCollections(_PluginBase):
                 requested_id=collection_id,
                 fallback_id=self._default_collection_id,
             )
-            payload = self._load_collection(
-                selected_id,
-                start=(page - 1) * count,
-                count=count,
-                refresh=False,
-            )
+            if year!='all' and (not year.isdigit() or not 1900<=int(year)<=2026):
+                raise ValueError('invalid year')
+            payload = self._load_collection(selected_id,start=0 if year!='all' else (page-1)*count,count=50 if year!='all' else count,refresh=False)
+            if year!='all':
+                items=list(payload.get('items') or [])
+                total=int((payload.get('collection') or {}).get('total') or 0)
+                if total<=0 or total>2000:raise ValueError('collection total unavailable for complete filtering')
+                for start in range(50,total,50):
+                    chunk=self._load_collection(selected_id,start=start,count=50,refresh=False)
+                    if not chunk.get('items'):raise ValueError('incomplete collection')
+                    items.extend(chunk['items'])
+                if len(items)<total:raise ValueError('incomplete collection')
+                selected=[item for item in items if str(item.get('year'))==year]
+                payload={**payload,'items':selected[(page-1)*count:page*count]}
             collection = payload.get("collection") or {}
             return [
                 schemas.MediaInfo(**media_info_payload(item, collection))
@@ -197,6 +208,8 @@ class DoubanCollections(_PluginBase):
             ]
         except Exception as error:
             logger.error(f"探索豆瓣分类榜单失败：{error}")
+            if year != "all":
+                raise HTTPException(502, "豆瓣分类榜单年份数据获取失败") from None
             return []
 
     def clear_cache(self) -> schemas.Response:
@@ -222,6 +235,7 @@ class DoubanCollections(_PluginBase):
                 api_path="plugin/DoubanCollections/discover",
                 filter_params={
                     "region": current_region,
+                    "year": "all",
                     "collection_id": current_id,
                 },
                 filter_ui=build_filter_ui(categories),

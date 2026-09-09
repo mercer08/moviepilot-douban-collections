@@ -232,6 +232,10 @@ def build_filter_ui(categories: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         region_literal = json.dumps(category["name"], ensure_ascii=False)
         row["props"]["show"] = f"{{{{region === {region_literal}}}}}"
         filter_rows.append(row)
+    filter_rows.append(_filter_row('作品年份','year',[
+        {'component':'VChip','props':{'filter':True,'tile':True,'value':value},'text':label}
+        for value,label in [('all','全部年份')]+[(str(y),str(y)) for y in range(2026,1899,-1)]
+    ]))
     return filter_rows
 
 
