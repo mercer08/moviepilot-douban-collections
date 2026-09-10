@@ -34,7 +34,7 @@ class DoubanCollections(_PluginBase):
     plugin_name = "豆瓣分类榜单"
     plugin_desc = "在探索页新增豆瓣分类榜单标签，保留地区和分类筛选，并使用原生媒体卡片。"
     plugin_icon = "https://raw.githubusercontent.com/mercer08/moviepilot-douban-collections/main/icons/douban.png"
-    plugin_version = "1.2.0"
+    plugin_version = "1.3.0"
     plugin_author = "mercer08"
     author_url = "https://github.com/mercer08"
     plugin_config_prefix = "doubancollections_"
@@ -249,11 +249,18 @@ class DoubanCollections(_PluginBase):
                 filter_params={"region": "", "collection_id": self._default_collection_id},
                 filter_ui=[],
             )
+        source.filter_params.setdefault("older_year", "")
         event_data: DiscoverSourceEventData = event.event_data
         if event_data.extra_sources:
             event_data.extra_sources.append(source)
         else:
             event_data.extra_sources = [source]
+        if any(s.api_path == "plugin/DiscoveryCurator/curated" for s in event_data.extra_sources):
+            try:
+                from app.plugins.discoverycurator.collection_integration import merge_collection_source
+                event_data.extra_sources = merge_collection_source(event_data.extra_sources)
+            except ImportError:
+                pass  # Older/absent curator keeps the independent source.
 
     def _category_snapshot(self) -> Dict[str, Any]:
         """获取默认榜单元数据，用于构造原生筛选控件。"""

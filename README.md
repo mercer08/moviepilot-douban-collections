@@ -66,3 +66,7 @@ python3 -m py_compile \
 ```
 
 许可证：[MIT](LICENSE)
+
+## 与选片精选合并（1.3.0）
+
+与 [DiscoveryCurator](https://github.com/mercer08/moviepilot-discovery-curator) 0.8.8 同时启用时，筛选合并到「选片精选 → 剧集精选 → 豆瓣分类」，不重复展示顶层标签。独立安装时保持原入口。默认显示全部年份与最近15年；较早年份可展开输入，不再列出直到1900年的长行。

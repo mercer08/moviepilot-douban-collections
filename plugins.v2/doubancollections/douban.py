@@ -232,10 +232,22 @@ def build_filter_ui(categories: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         region_literal = json.dumps(category["name"], ensure_ascii=False)
         row["props"]["show"] = f"{{{{region === {region_literal}}}}}"
         filter_rows.append(row)
-    filter_rows.append(_filter_row('作品年份','year',[
+    from datetime import date
+    current=date.today().year
+    cutoff=current-14
+    years=_filter_row('作品年份','year',[
         {'component':'VChip','props':{'filter':True,'tile':True,'value':value},'text':label}
-        for value,label in [('all','全部年份')]+[(str(y),str(y)) for y in range(2026,1899,-1)]
-    ]))
+        for value,label in [('all','全部年份')]+[(str(y),str(y)) for y in range(current,cutoff-1,-1)]
+    ])
+    # Keep the common year chips short. Older years are an optional explicit input.
+    for child in years.get('content',[]):
+        if child.get('component')=='VChipGroup':
+            child['props']['onUpdate:modelValue']="value => { older_year = ''; }"
+    filter_rows.append(years)
+    filter_rows.append({'component':'details','props':{'class':'dc-older-year','style':'margin:4px 12px 12px;font-size:13px'},'content':[
+        {'component':'summary','text':'更早年份','props':{'style':'cursor:pointer;opacity:.7'}},
+        {'component':'VTextField','props':{'model':'older_year','type':'number','min':1900,'max':cutoff-1,'label':f'输入年份（1900–{cutoff-1}）','density':'compact','variant':'outlined','hide-details':True,'style':'max-width:240px;margin-top:8px',
+            'onUpdate:modelValue':"value => { older_year = value; if (/^\\d{4}$/.test(String(value)) && Number(value)>=1900 && Number(value)<"+str(cutoff)+") year = String(value); }"}}]})
     return filter_rows
 
 

@@ -128,6 +128,9 @@ class DoubanHelpersTest(unittest.TestCase):
     def test_filter_ui_uses_moviepilot_native_components(self) -> None:
         """探索筛选只应由 MoviePilot 的原生渲染组件组成。"""
         ui = douban.build_filter_ui(CATEGORIES)
+        year_group=next(row["content"][1] for row in ui if len(row.get("content",[]))>1 and row["content"][1].get("props",{}).get("model")=="year")
+        self.assertEqual(len(year_group["content"]),16)
+        self.assertNotIn("1900",[c["props"]["value"] for c in year_group["content"]])
         self.assertEqual(ui[0]["content"][0]["content"][0]["text"], "地区")
         self.assertEqual(ui[2]["props"]["show"], '{{region === "美剧"}}')
         components = []
@@ -138,7 +141,7 @@ class DoubanHelpersTest(unittest.TestCase):
                 collect(node.get("content") or [])
 
         collect(ui)
-        self.assertTrue(set(components) <= {"div", "VLabel", "VChipGroup", "VChip"})
+        self.assertTrue(set(components) <= {"div", "VLabel", "VChipGroup", "VChip", "details", "summary", "VTextField"})
 
     def test_media_payload_exposes_native_card_fields(self) -> None:
         """海报与评分必须使用 MediaInfo 的原生字段名。"""
