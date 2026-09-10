@@ -34,7 +34,7 @@ class DoubanCollections(_PluginBase):
     plugin_name = "豆瓣分类榜单"
     plugin_desc = "在探索页新增豆瓣分类榜单标签，保留地区和分类筛选，并使用原生媒体卡片。"
     plugin_icon = "https://raw.githubusercontent.com/mercer08/moviepilot-douban-collections/main/icons/douban.png"
-    plugin_version = "1.3.0"
+    plugin_version = "1.3.1"
     plugin_author = "mercer08"
     author_url = "https://github.com/mercer08"
     plugin_config_prefix = "doubancollections_"

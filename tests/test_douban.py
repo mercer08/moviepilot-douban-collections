@@ -40,6 +40,32 @@ CATEGORIES = [
 class DoubanHelpersTest(unittest.TestCase):
     """验证榜单 ID 解析和数据清洗。"""
 
+    def test_year_events_update_model_and_clear_old_selection(self):
+        import json, shutil, subprocess
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node is required for FormRender event contract")
+        rows = douban.build_filter_ui(CATEGORIES)
+        def walk(nodes):
+            for item in nodes:
+                yield item
+                yield from walk(item.get("content", []))
+        handlers = {item["props"]["model"]: item["props"]["onUpdate:modelValue"]
+                    for item in walk(rows) if "onUpdate:modelValue" in item.get("props", {})}
+        script = r"""
+const handlers = JSON.parse(process.argv[1]);
+const model = {year:'all', older_year:''};
+const run = (key,value) => new Function('model','event',
+  'with(model) { return ('+handlers[key]+')(event); }')(model,value);
+const assert = require('node:assert/strict');
+run('year','2025'); assert.equal(model.year,'2025');
+run('older_year','200'); assert.equal(model.year,'2025');
+run('older_year','2000'); assert.equal(model.year,'2000');
+run('year','2024'); assert.equal(model.year,'2024'); assert.equal(model.older_year,'');
+run('year','all'); assert.equal(model.year,'all');
+"""
+        subprocess.run([node, "-e", script, json.dumps(handlers)], check=True)
+
     def test_parse_collection_id_accepts_id_and_mobile_url(self) -> None:
         """榜单 ID 和移动版地址都应解析为同一个 ID。"""
         self.assertEqual(douban.parse_collection_id("ECFA5DI7Q"), "ECFA5DI7Q")

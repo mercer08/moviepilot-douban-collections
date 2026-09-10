@@ -242,7 +242,7 @@ def build_filter_ui(categories: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     # Keep the common year chips short. Older years are an optional explicit input.
     for child in years.get('content',[]):
         if child.get('component')=='VChipGroup':
-            child['props']['onUpdate:modelValue']="value => { older_year = ''; }"
+            child['props']['onUpdate:modelValue']="value => { year = value; older_year = ''; }"
     filter_rows.append(years)
     filter_rows.append({'component':'details','props':{'class':'dc-older-year','style':'margin:4px 12px 12px;font-size:13px'},'content':[
         {'component':'summary','text':'更早年份','props':{'style':'cursor:pointer;opacity:.7'}},
